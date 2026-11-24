@@ -1,5 +1,19 @@
 # Controller Configuration
 
+## Keyboard driving mode (mouse-look branch)
+
+Enable **Keyboard as controller** in Settings > Keys. During a stream, press
+**F6** to switch the configured left-stick forward/back keys (normally W/S)
+to R2/L2 for acceleration and braking or reversing. Press F6 again after
+leaving the vehicle to restore walking. On Macs with media function keys,
+you may need Fn+F6. Steering and mouse camera controls keep their bindings.
+The shortcut switches manually; it does not detect entering a vehicle.
+
+Held forward/back keys are remapped immediately when switching modes. Losing
+window focus clears held keyboard input. Each new stream starts in walking
+mode. F6 is reserved while keyboard controller input is enabled. The session
+log records whether driving mode is on or off.
+
 ## Configuring Steam Deck Controller Profile
 
 !!! Tip

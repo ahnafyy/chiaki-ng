@@ -40,3 +40,9 @@ target_link_libraries(chiaki-unit chiaki-lib munit)
 if(CHIAKI_ENABLE_FFMPEG_DECODER)
 	target_link_libraries(chiaki-unit FFMPEG::avcodec FFMPEG::avutil)
 endif()
+
+# No Qt or GUI runtime is needed to test keyboard driving transitions.
+add_executable(chiaki-driving-input drivinginput.cpp)
+target_include_directories(chiaki-driving-input PRIVATE "${PROJECT_SOURCE_DIR}/gui/include")
+target_link_libraries(chiaki-driving-input chiaki-lib)
+add_test(NAME driving-input COMMAND chiaki-driving-input)

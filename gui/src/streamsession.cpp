@@ -1023,9 +1023,28 @@ void StreamSession::MouseLookTick()
 	SendFeedbackState();
 }
 
-void StreamSession::HandleKeyboardEvent(QKeyEvent *event)
+bool StreamSession::ToggleDrivingMode()
 {
 	if(!keyboard_controller_enabled)
+		return false;
+	const bool enabled = driving_input.Toggle();
+	CHIAKI_LOGI(GetChiakiLog(), "Driving mode %s (F6): forward/back keys %s",
+		enabled ? "on" : "off", enabled ? "accelerate/brake" : "move");
+	SendFeedbackState();
+	return true;
+}
+
+void StreamSession::ClearKeyboardInput()
+{
+	driving_input.Clear();
+	chiaki_controller_state_set_idle(&keyboard_state);
+	mouse_touch_id = -1;
+	SendFeedbackState();
+}
+
+void StreamSession::HandleKeyboardEvent(QKeyEvent *event)
+{
+	if(!keyboard_controller_enabled || event->key() == Qt::Key_F6)
 		return;
 	if(key_map.contains(Qt::Key(event->key())) == false)
 		return;
@@ -1057,10 +1076,10 @@ void StreamSession::HandleKeyboardEvent(QKeyEvent *event)
 			keyboard_state.right_x = press_event ? -0x7fff : 0;
 			break;
 		case static_cast<int>(ControllerButtonExt::ANALOG_STICK_LEFT_Y_UP):
-			keyboard_state.left_y = press_event ? -0x7fff : 0;
+			driving_input.HandleKey(event->key(), true, press_event);
 			break;
 		case static_cast<int>(ControllerButtonExt::ANALOG_STICK_LEFT_Y_DOWN):
-			keyboard_state.left_y = press_event ? 0x7fff : 0;
+			driving_input.HandleKey(event->key(), false, press_event);
 			break;
 		case static_cast<int>(ControllerButtonExt::ANALOG_STICK_LEFT_X_UP):
 			keyboard_state.left_x = press_event ? 0x7fff : 0;
@@ -1361,7 +1380,9 @@ void StreamSession::DpadSendFeedbackState()
 #if CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE
 	chiaki_controller_state_or(&state, &state, &sdeck_state);
 #endif
-	chiaki_controller_state_or(&state, &state, &keyboard_state);
+	ChiakiControllerState mapped_keyboard = keyboard_state;
+	driving_input.Apply(mapped_keyboard);
+	chiaki_controller_state_or(&state, &state, &mapped_keyboard);
 	chiaki_controller_state_or(&state, &state, &mouse_look_state);
 	chiaki_controller_state_or(&state, &state, &touch_state);
 
@@ -1374,6 +1395,7 @@ void StreamSession::DpadSendFeedbackState()
 		{
 			chiaki_controller_state_set_idle(&state);
 			chiaki_controller_state_set_idle(&keyboard_state);
+			driving_input.Clear();
 		}
 	}
 	if((dpad_touch_shortcut1 || dpad_touch_shortcut2 || dpad_touch_shortcut3 || dpad_touch_shortcut4) && (!dpad_touch_shortcut1 || (state.buttons & dpad_touch_shortcut1)) && (!dpad_touch_shortcut2 || (state.buttons & dpad_touch_shortcut2)) && (!dpad_touch_shortcut3 || (state.buttons & dpad_touch_shortcut3)) && (!dpad_touch_shortcut4 || (state.buttons & dpad_touch_shortcut4)))
@@ -1418,7 +1440,9 @@ void StreamSession::SendFeedbackState()
 #if CHIAKI_GUI_ENABLE_STEAMDECK_NATIVE
 	chiaki_controller_state_or(&state, &state, &sdeck_state);
 #endif
-	chiaki_controller_state_or(&state, &state, &keyboard_state);
+	ChiakiControllerState mapped_keyboard = keyboard_state;
+	driving_input.Apply(mapped_keyboard);
+	chiaki_controller_state_or(&state, &state, &mapped_keyboard);
 	chiaki_controller_state_or(&state, &state, &mouse_look_state);
 	chiaki_controller_state_or(&state, &state, &touch_state);
 
@@ -1431,6 +1455,7 @@ void StreamSession::SendFeedbackState()
 		{
 			chiaki_controller_state_set_idle(&state);
 			chiaki_controller_state_set_idle(&keyboard_state);
+			driving_input.Clear();
 		}
 	}
 	if((dpad_touch_shortcut1 || dpad_touch_shortcut2 || dpad_touch_shortcut3 || dpad_touch_shortcut4) && (!dpad_touch_shortcut1 || (state.buttons & dpad_touch_shortcut1)) && (!dpad_touch_shortcut2 || (state.buttons & dpad_touch_shortcut2)) && (!dpad_touch_shortcut3 || (state.buttons & dpad_touch_shortcut3)) && (!dpad_touch_shortcut4 || (state.buttons & dpad_touch_shortcut4)))
