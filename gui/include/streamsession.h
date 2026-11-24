@@ -32,6 +32,7 @@
 #include "controllermanager.h"
 #include "settings.h"
 #include "mouselook.h"
+#include "drivinginput.h"
 
 #include <QObject>
 #include <QImage>
@@ -221,6 +222,7 @@ class StreamSession : public QObject
 		bool rumble_haptics_on;
 		float PS_TOUCHPAD_MAX_X, PS_TOUCHPAD_MAX_Y;
 		ChiakiControllerState keyboard_state;
+		DrivingInput driving_input;
 		ChiakiControllerState touch_state;
 		ChiakiControllerState mouse_look_state;
 		MouseLook mouse_look;
@@ -374,6 +376,8 @@ class StreamSession : public QObject
 		ChiakiPiDecoder *GetPiDecoder()	{ return pi_decoder; }
 #endif
 		void HandleKeyboardEvent(QKeyEvent *event);
+		bool ToggleDrivingMode();
+		void ClearKeyboardInput();
 		void HandleTouchEvent(QTouchEvent *event, qreal width, qreal height);
 		void HandleDpadTouchEvent(ChiakiControllerState *state, bool placeholder = false);
 		void HandleMouseReleaseEvent(QMouseEvent *event);

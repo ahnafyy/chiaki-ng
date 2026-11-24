@@ -7723,6 +7723,12 @@ bool QmlMainWindow::handleShortcut(QKeyEvent *event)
             else
                 normalTime();
             return true;
+        case Qt::Key_F6:
+            if (!session || grab_input)
+                return false;
+            if (event->isAutoRepeat())
+                return true;
+            return session->ToggleDrivingMode();
         case Qt::Key_F8:
             // Mouse look: capture or release the pointer
             if (!session || grab_input || !settings->GetMouseLookEnabled())
@@ -7849,6 +7855,8 @@ bool QmlMainWindow::event(QEvent *event)
         break;
     case QEvent::FocusOut:
         stopMouseLook();
+        if (session)
+            session->ClearKeyboardInput();
         break;
     case QEvent::Close:
         if (!backend->closeRequested()) {
